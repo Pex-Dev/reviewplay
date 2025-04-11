@@ -171,10 +171,13 @@ class ProfileController extends Controller
             // Generamos un nombre único para el archivo
             $fileName = uniqid() . '.png';
 
-            // Guardamos la imagen en el almacenamiento público
-            $path = Storage::disk('public')->put($fileName, $imageData);
+            // Ruta de destino absoluta
+            $path = public_path('uploads/' . $fileName);
 
-            if (!$path) {
+            // Intentamos guardar la imagen directamente
+            $escrito = file_put_contents($path, $imageData);
+
+            if (!$escrito) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Error al subir la imagen'

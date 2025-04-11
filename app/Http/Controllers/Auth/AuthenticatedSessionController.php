@@ -88,6 +88,10 @@ class AuthenticatedSessionController extends Controller
             $user->save();
         }
 
+        //Eliminar token de acceso del usuario
+        $user->tokens->each(function ($token) {
+            $token->delete();
+        });
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
