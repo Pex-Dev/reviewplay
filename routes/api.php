@@ -1,21 +1,25 @@
 <?php
 
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\ComunityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoritesController;
+use App\Http\Controllers\FollowController;
 use App\Http\Controllers\GamesController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewsController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'show']);
 
 Route::get('/dashboard', [DashboardController::class, "index"]);
+
+Route::get('/comunity', [ComunityController::class, 'index']);
+Route::get('/comunity/search-users/{name}', [ComunityController::class, 'searchUsers']);
 
 Route::get('/profile/{id}', [ProfileController::class, "show"]);
 Route::get('/profile/{id}/reviews', [ReviewsController::class, "getUserReviews"]);
@@ -36,5 +40,19 @@ Route::get('/getReview/{id}', [ReviewsController::class, 'show']);
 Route::middleware(['auth:sanctum', 'verified'])->post('/addReview', [ReviewsController::class, 'store']);
 Route::middleware(['auth:sanctum', 'verified'])->put('/updateReview', [ReviewsController::class, 'update']);
 Route::middleware(['auth:sanctum', 'verified'])->delete('/deleteReview', [ReviewsController::class, 'destroy']);
+
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-visible-as-read', [NotificationController::class, 'update']);
+});
+
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/user/{id}/follow', [FollowController::class, 'followUser']);
+    Route::delete('/user/{id}/unfollow', [FollowController::class, 'unfollowUser']);
+    Route::post('/game/{id}/follow', [FollowController::class, 'followGame']);
+    Route::post('/game/{id}/unfollow', [FollowController::class, 'unfollowGame']);
+});
+Route::get('/user/{id}/get-followed', [FollowController::class, 'getFollowed']);
+Route::get('/user/{id}/get-followers', [FollowController::class, 'getFollowers']);
 
 Route::get('/favorites/{id}', [FavoritesController::class, "index"]);

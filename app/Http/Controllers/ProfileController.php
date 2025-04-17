@@ -26,8 +26,7 @@ class ProfileController extends Controller
             ], 404);
         }
 
-        //Buscar los ultimos 4 juegos favoritos del usuario
-        $latestFavorites = $user->favoriteGames()->latest()->take(4)->get();
+
 
         $response = [
             'success' => true,
@@ -37,38 +36,41 @@ class ProfileController extends Controller
                 'id' => $user->id,
                 'image' => $user->image,
                 'name' => $user->name,
-            ],
-            'verified' => false,
+                'verified' => false,
+            ]
         ];
-
-        //Enviar 4 ultimos juegos favoritos para que se muestren en el perfil
-        if (count($latestFavorites) > 0) {
-            $response['latestFavorites'] = $latestFavorites;
-        }
-
-        //Buscar ultimas 4 reseñas del usuario
-        $latestReviews = $user->reviews()->with(['user', 'game'])->latest()->take(6)->get();
-
-        //Enviar los ultimas 4 reseñas para mostrarlas en el perfil
-        if (count($latestReviews) > 0) {
-            $response['latestReviews'] = $latestReviews;
-        }
 
 
         //Obtener cantidad de reseñas hechas por el usuario 
         $reviewCount = $user->reviews()->count();
+        $response['user']['reviewsCount'] = $reviewCount;
 
-        $response['reviewsCount'] = $reviewCount;
-
-        //Obtener usuarios con mayor cantidad de reseñas
+        //Obtener cantidad de favoritos del usuario
         $favoriteCount = $user->favoriteGames()->count();
+        $response['user']['favoritesCount'] = $favoriteCount;
 
-        $response['favoritesCount'] = $favoriteCount;
+        //Obtener cantidad de seguidores del usuario
+        $response['user']['followersCount'] = $user->followers()->count();
+
+        //Obtener cantidad de usuarios y juegos seguidos
+        $response['user']['followedCount'] = $user->followedGames()->count() +  $user->following()->count();
 
         //Ver si el usuario esta autenticado con sanctum
         $userAuth = Auth::guard('sanctum')->user();
 
-        //Si se encontro el usuario enviar 
+        //Buscar los ultimos 4 juegos favoritos del usuario
+        $latestFavorites = $user->favoriteGames()->latest()->take(4)->get();
+        if (count($latestFavorites) > 0) {
+            $response['user']['latestFavorites'] = $latestFavorites;
+        }
+
+        //Buscar ultimas 4 reseñas del usuario
+        $latestReviews = $user->reviews()->with(['user', 'game'])->latest()->take(6)->get();
+        if (count($latestReviews) > 0) {
+            $response['user']['latestReviews'] = $latestReviews;
+        }
+
+        //Si el usuario (no el del perfil) esta autenticado
         if ($userAuth) {
             //Si el perfil es del usuario
             if ($userAuth->id == $id) {
@@ -80,7 +82,14 @@ class ProfileController extends Controller
                         'message' => 'Usuario no verificado'
                     ], 403);
                 }
-                $response['verified'] = true;
+                $response['user']['verified'] = true;
+            } else {
+                //Ver si el usuario esta entre los seguidores del usuario al que queremos ver el perfil
+                if ($user->followers()->where('follower_id', $userAuth->id)->exists()) {
+                    $response['followed'] = true;
+                } else {
+                    $response['followed'] = false;
+                }
             }
         }
 

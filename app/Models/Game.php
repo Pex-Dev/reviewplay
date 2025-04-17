@@ -33,4 +33,10 @@ class Game extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    //Usuarios que siguen el juego
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'followed_games');
+    }
 }

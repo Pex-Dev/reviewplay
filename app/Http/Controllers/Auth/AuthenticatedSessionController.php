@@ -35,18 +35,16 @@ class AuthenticatedSessionController extends Controller
                 ], 403);
             }
 
+            $unreadNotifications = $user->unreadNotifications->count();
+
             $response = [
                 'user' => $user,
+                'unreadNotifications' => $unreadNotifications,
                 'success' => true,
                 'verified' => true,
                 'remember' => ($request->has('remember') && $request['remember'] == true),
                 'message' => 'Sesión Iniciada'
             ];
-
-            // //Verificar si el usuario quiere mantener la sesión iniciada
-            // if ($request->filled('remember')) {
-            //     $response['remember'] = true;
-            // }
 
             return response()->json($response);
         }

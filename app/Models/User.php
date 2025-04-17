@@ -63,4 +63,21 @@ class User extends Authenticatable implements AuthMustVerifyEmail
     {
         return $this->hasMany(Review::class);
     }
+
+    //Usuarios que sigue el usuario
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'follower_user', 'follower_id', 'user_id')->withTimestamps();
+    }
+
+    //Usuarios que siguen al usuario
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follower_user', 'user_id', 'follower_id')->withTimestamps();
+    }
+
+    public function followedGames()
+    {
+        return $this->belongsToMany(Game::class, 'followed_games')->withTimestamps();;
+    }
 }

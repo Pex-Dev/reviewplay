@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Favorite;
 use App\Models\Game;
-use App\Models\Review;
 use App\Services\GameService;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -156,6 +153,9 @@ class GamesController extends Controller
             if ($review) {
                 $respuesta['userReview'] = $review;
             }
+
+            //Buscar si el usuario sigue el juego
+            $respuesta['game']['followed'] = $user->followedGames()->where('game_id', $game['id'])->exists();
         }
 
         return response()->json($respuesta);

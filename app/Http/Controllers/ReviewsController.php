@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use App\Models\Review;
 use App\Models\User;
+use App\Notifications\NewReviewNotification;
 use App\Services\GameService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +63,7 @@ class ReviewsController extends Controller
         $id = $request['id'];
 
         //Buscar review
-        $review = Review::with('user')->find($id);
+        $review = Review::with(['user', 'game'])->find($id);
 
         if (!$review) {
             return response()->json([
@@ -122,10 +123,10 @@ class ReviewsController extends Controller
         //Si el juego no esta en la base de datos se busca con la API
         if (!$game) {
             //Buscar juego en la API RAWG
-            $game = GameService::getGameAPI($apiId);
+            $gameAPI = GameService::getGameAPI($apiId);
 
             //Si no se encontro el juego
-            if (!$game) {
+            if (!$gameAPI) {
                 return response()->json([
                     'errors' => ['message' => 'No se pudo encontrar el juego'],
                     'success' => false
@@ -133,35 +134,45 @@ class ReviewsController extends Controller
             }
 
             //Almacenar en la base de datos
-            $gameDB = Game::create([
-                'id' => $game['id'],
-                'name' => $game['name'],
-                'alternative_names' => count($game['alternative_names']) > 0 ? implode(" ", $game['alternative_names']) : null,
-                'description' => $game['description'],
-                'developers' => json_encode($game['developers']),
-                'background_image' => $game['background_image'],
-                'released' => $game['released'],
-                'genres' => json_encode($game['genres']),
-                'tags' => json_encode($game['tags']),
-                'platforms' => json_encode($game['platforms'])
+            $game = Game::create([
+                'id' => $gameAPI['id'],
+                'name' => $gameAPI['name'],
+                'alternative_names' => count($gameAPI['alternative_names']) > 0 ? implode(" ", $gameAPI['alternative_names']) : null,
+                'description' => $gameAPI['description'],
+                'developers' => json_encode($gameAPI['developers']),
+                'background_image' => $gameAPI['background_image'],
+                'released' => $gameAPI['released'],
+                'genres' => json_encode($gameAPI['genres']),
+                'tags' => json_encode($gameAPI['tags']),
+                'platforms' => json_encode($gameAPI['platforms'])
             ]);
+        };
 
-            //Id que se usara para referenciar el juego en reviews
-            $gameId = $gameDB->id;
-        } else {
-            //Id que se usara para referenciar el juego en reviews
-            $gameId = $game->id;
-        }
-
+        //Crear reseña
         $review = Review::create([
-            'game_id' => $gameId,
+            'game_id' => $game->id,
             'user_id' => auth()->user()->id,
             'score' => $request['score'],
             'review' => $request['review']
         ]);
 
+        //Añadir relación con el usuario
         $review->load('user');
 
+
+        //Obtener seguidores del juego y seguidores del usuario
+        $userFollowers = auth()->user()->followers;
+        $gameFollowers = $game->followers;
+
+        // Combinar y eliminar duplicados por ID
+        $notifiedUsers = $userFollowers->merge($gameFollowers)->unique('id');
+
+        // Enviar notificación una sola vez a cada usuario
+        foreach ($notifiedUsers as $follower) {
+            $follower->notify(new NewReviewNotification(auth()->user(), $review));
+        }
+
+        //Enviar respuesta 
         return response()->json([
             'success' => true,
             'message' => 'Reseña añadida correctamente',
