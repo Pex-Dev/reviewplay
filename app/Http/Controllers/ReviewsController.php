@@ -169,7 +169,10 @@ class ReviewsController extends Controller
 
         // Enviar notificación una sola vez a cada usuario
         foreach ($notifiedUsers as $follower) {
-            $follower->notify(new NewReviewNotification(auth()->user(), $review));
+            //No enviar notificación al mismo ususario que hizo la reseña
+            if ($follower->id != auth()->user()->id) {
+                $follower->notify(new NewReviewNotification(auth()->user(), $review));
+            }
         }
 
         //Enviar respuesta 

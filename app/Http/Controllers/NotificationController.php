@@ -9,16 +9,35 @@ class NotificationController extends Controller
 {
     public static function index(Request $request)
     {
-        $order = request('order') === 'desc' ? 'desc' : 'asc';
+        $order = $request->input('order') === 'desc' ? 'desc' : 'asc';
 
-        //Uso DatabaseNotification en vez de user()->notifications() porque por alguna razón no funionaba el order by. 
-        //Se hacia un order by dos veces en la consulta.
-
-        return DatabaseNotification::where('notifiable_id', $request->user()->id)
-            ->where('notifiable_type', 'App\Models\User')
+        //Obtener notificaciones
+        $notifications = DatabaseNotification::where('notifiable_id', $request->user()->id)
+            ->where('notifiable_type', \App\Models\User::class)
             ->orderBy('created_at', $order)
             ->paginate(20);
+
+
+        //Obtener ids de los usuarios de las notificaciones
+        $usersId = collect($notifications->items())
+            ->pluck('data.user_id')
+            ->unique()
+            ->filter()
+            ->all();
+
+        //Obtener usuario a partir de los ids de las notificaciones
+        $users = \App\Models\User::whereIn('id', $usersId)
+            ->select('id', 'name', 'image')
+            ->get()
+            ->keyBy('id');
+
+
+        return response()->json([
+            'notifications' => $notifications,
+            'users' => $users,
+        ]);
     }
+
 
     public static function update(Request $request)
     {
