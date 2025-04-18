@@ -38,35 +38,6 @@ class FavoritesController extends Controller
 
     public static function store(Request $request)
     {
-
-        //Buscar juego
-        $game = Game::find($request['id']);
-
-        //Retornar respuesta 
-        if (!$game) {
-            //Añadir juego a la base de datos
-
-            return response()->json([
-                'success' => false,
-                'message' => 'No se pudo encontrar el juego'
-            ], 404);
-        }
-
-        //Registrar juego
-        Favorite::create([
-            'user_id' => auth()->user()->id,
-            'game_id' => $game->id,
-        ]);
-
-        //Retornar respuesta
-        return response()->json([
-            'success' => true,
-            'message' => 'Agregado a favoritos correctamente'
-        ]);
-    }
-
-    public static function addToFavorites(Request $request)
-    {
         //Obtener id del juego
         $id = $request['id'] ?? null;
 
@@ -138,7 +109,7 @@ class FavoritesController extends Controller
         ]);
     }
 
-    public static function removeFromFavorites(Request $request)
+    public static function destroy(Request $request)
     {
         $id = $request['id'] ?? null;
 

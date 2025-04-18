@@ -241,7 +241,7 @@ class ReviewsController extends Controller
         ]);
     }
 
-    public function getGameReviews(Request $request)
+    public function gameReviews(Request $request)
     {
         $id = $request['id'];
 
@@ -288,7 +288,7 @@ class ReviewsController extends Controller
         ]);
     }
 
-    public static function getUserReviews(Request $request)
+    public static function userReviews(Request $request)
     {
         $id = $request['id'];
 

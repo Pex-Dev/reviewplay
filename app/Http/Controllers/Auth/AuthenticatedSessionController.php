@@ -28,6 +28,16 @@ class AuthenticatedSessionController extends Controller
 
             //Verificar que el usuario este verificado.
             if (!$user->email_verified_at) {
+
+                //Eliminar token de acceso del usuario
+                $user->tokens->each(function ($token) {
+                    $token->delete();
+                });
+
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                Auth::guard('web')->logout();
+
                 return response()->json([
                     'success' => false,
                     'verified' => false,
