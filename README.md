@@ -33,3 +33,46 @@
 - [Sitio en vivo](https://reviewplay.brayandev.com/)
 - [Repositorio Backend](https://github.com/Pex-Dev/reviewplay)
 - [Repositorio Frontend](https://github.com/Pex-Dev/reviewplay-frontend)
+
+## 🚀 Cómo ejecutar este proyecto localmente
+Este proyecto tiene un frontend en React y un backend en Laravel, conectados mediante API con autenticación usando Laravel Sanctum.
+
+📦 Requisitos
+- Docker instalado
+
+- Composer instalado (solo se necesita para ejecutar composer install una vez al comienzo)
+
+- Una cuenta en RAWGD para la API de juegos
+
+## 🔧Instalación
+
+**Clonar el repositorio:**
+```bash
+git clone https://github.com/Pex-Dev/reviewplay.git
+cd reviewplay
+```
+**Copiar archivo env**
+```bash
+cp .env.example .env
+```
+**Editar archivo .env**
+
+    Abre .env y ajusta estas variables según tu entorno local
+
+**Instalar dependencias de php**
+```bash
+composer install
+```
+**Levantar los contenedores Docker con Sail**
+```bash
+./vendor/bin/sail up -d
+```
+**Generar la clave de la aplicación para que laravel funcione correctamente**
+```bash
+./vendor/bin/sail artisan key:generate
+```
+
+**Ejecutar migraciones**
+```bash
+./vendor/bin/sail artisan migrate
+```
