@@ -1,5 +1,12 @@
 # 🎮 ReviewPlay
 
+- [Español](#Español)
+
+- [English](#english)
+
+## Español 
+---
+
 **ReviewPlay** es una aplicación web de reseñas de videojuegos desarrollada con **Laravel (Sanctum)** en el backend y **React** (SPA con React Router DOM) en el frontend. Su objetivo es ofrecer una plataforma moderna y funcional donde los usuarios puedan descubrir, reseñar y seguir juegos y personas con intereses similares.
 
 ## 🚀 Características principales
@@ -73,6 +80,86 @@ composer install
 ```
 
 **Ejecutar migraciones**
+```bash
+./vendor/bin/sail artisan migrate
+```
+
+## English
+---
+
+**ReviewPlay** is a web application for video game reviews, built with **Laravel (Sanctum)** on the backend and **React** (SPA with React Router DOM) on the frontend.  
+It provides a modern and functional platform where users can discover, review, and follow games and people with similar interests.
+
+## 🚀 Main Features
+
+- 🔐 User registration with **email verification**
+- 🕹️ Video game search with **dynamic filters**
+- ⭐ Game ratings from **1 to 10**
+- 📌 Save games as **favorites**
+- 🔔 **In-app notifications**
+- 👥 Ability to **follow other users and games**
+- 🧑‍💼 Profile customization with **biography and image cropping**
+- 🔍 Search users by name
+- 🧠 Optimized API requests: games are stored locally only when users interact (review, follow or favorite)
+
+## 🧱 Technologies Used
+
+- **Frontend:** React, Tailwind CSS, React Router DOM  
+- **Backend:** Laravel 11, Sanctum, Laravel API Resources  
+- **Authentication:** API Token with Sanctum  
+- **Database:** MySQL  
+- **Other:** React Cropper (for images), Axios, React Modal, React Slick, SweetAlert2 React, RAWG (for game data)
+
+## 📸 Screenshots
+
+| ![Image 1](/screenshots/1.png) | ![Image 2](/screenshots/2.png) |
+| :---------------------------: | :---------------------------: |
+| ![Image 3](/screenshots/3.png) | ![Image 4](/screenshots/4.png) |
+
+## 📎 Links
+
+- [Live Site](https://reviewplay.brayandev.com/)
+- [Backend Repository](https://github.com/Pex-Dev/reviewplay)
+- [Frontend Repository](https://github.com/Pex-Dev/reviewplay-frontend)
+
+## 🚀 How to run this project locally
+
+This project has a React frontend and a Laravel backend connected via API using Laravel Sanctum.
+
+📦 Requirements
+- Docker installed  
+- Composer installed (only needed to run `composer install` once)  
+- A RAWG account for accessing the game API
+
+## 🔧 Installation
+
+**Clone the repository:**
+```bash
+git clone https://github.com/Pex-Dev/reviewplay.git
+cd reviewplay
+
+**Copy the .env file**
+```bash
+cp .env.example .env
+```
+**Edit .env file**
+
+    Adjust the environment variables according to your local setup
+
+**Install PHP dependencies**
+```bash
+composer install
+```
+**Start Docker containers with Sail**
+```bash
+./vendor/bin/sail up -d
+```
+**Generate the Laravel application key**
+```bash
+./vendor/bin/sail artisan key:generate
+```
+
+**Run migrations**
 ```bash
 ./vendor/bin/sail artisan migrate
 ```
