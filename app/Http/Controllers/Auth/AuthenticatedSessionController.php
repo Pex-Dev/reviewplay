@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cookie;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -104,6 +105,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         Auth::guard('web')->logout();
+
+        // Forzar borrar cookie de sesión
+        Cookie::queue(Cookie::forget('reviewplay_session_v2'));
 
         return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
