@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cookie;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -24,20 +23,16 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         // Intentar autenticar al usuario con su email y password
-        if (Auth::attempt($request->only('email', 'password'), ($request->has('remember') && $request['remember'] == true))) {
+        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
             $user = Auth::user();
 
             //Verificar que el usuario este verificado.
             if (!$user->email_verified_at) {
 
-                //Eliminar token de acceso del usuario
-                $user->tokens->each(function ($token) {
-                    $token->delete();
-                });
-
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                Auth::guard('web')->logout();
+                //Cerrar sesión
+                Auth::logout();
+                $request -> session() -> invalidate();
+                $request -> session() -> regenerateToken();
 
                 return response()->json([
                     'success' => false,
@@ -46,6 +41,7 @@ class AuthenticatedSessionController extends Controller
                 ], 403);
             }
 
+            //Contar notificaciones pendientes
             $unreadNotifications = $user->unreadNotifications->count();
 
             $response = [
@@ -78,36 +74,27 @@ class AuthenticatedSessionController extends Controller
 
         //Verificar si el usuario es invitado
         if ($user->id == 1) {
-            //Reestablecer registros del usuario invitado
-            $reviews = $user->reviews()->get();
-            foreach ($reviews as $review) {
-                $review->delete();
-            }
-            $favorites = $user->favoriteGames()->get();
-            foreach ($favorites as $favorite) {
-                $user->favoriteGames()->detach($favorite->id);
-            }
+            
+            // Reseñas
+            $user->reviews()->delete();
+            
+            // Favoritos
+            $user->favoriteGames()->detach();
 
             //Eliminar imagen si tiene una
             if ($user->image) {
                 Storage::disk('public')->delete($user->image);
             }
-            $user->image = null;
-            $user->description = "Cuenta de invitado. Solo puede registrar 5 juegos como favoritos y 5 reseñas.";
-            $user->save();
+
+            $user->update([
+                'image' => null,
+                'description' => "Cuenta de invitado. Solo puede registrar 5 juegos como favoritos y 5 reseñas."
+            ]);
         }
 
-        //Eliminar token de acceso del usuario
-        $user->tokens->each(function ($token) {
-            $token->delete();
-        });
-
+        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        Auth::guard('web')->logout();
-
-        // Forzar borrar cookie de sesión
-        Cookie::queue(Cookie::forget('reviewplay_session_v2'));
 
         return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
@@ -118,7 +105,6 @@ class AuthenticatedSessionController extends Controller
         //Encontrar el usuario invitado
         $userGuest = User::find(1);
 
-        //Verificar si el usuario invitado existe
         if (!$userGuest) {
             return response()->json([
                 'success' => false,
@@ -126,37 +112,33 @@ class AuthenticatedSessionController extends Controller
             ], 404);
         }
 
-        //Autenticar al usuario invitado
-        Auth::login($userGuest);
+        //Eliminar reseñas
+        $userGuest->reviews()->delete();
 
-        //Reestablecer registros del usuario invitado
-        $reviews = $userGuest->reviews()->get();
-        foreach ($reviews as $review) {
-            $review->delete();
-        }
-        $favorites = $userGuest->favoriteGames()->get();
-        foreach ($favorites as $favorite) {
-            $userGuest->favoriteGames()->detach($favorite->id);
-        }
+        //Eliminar favoritos
+        $userGuest->favoriteGames()->detach();
 
-        //Eliminar imagen si tiene una
+        //Eliminar imagen
         if ($userGuest->image) {
             Storage::disk('public')->delete($userGuest->image);
         }
-        $userGuest->image = null;
-        $userGuest->description = "Cuenta de invitado. Solo puede registrar 5 juegos como favoritos y 5 reseñas.";
-        $userGuest->save();
 
-        //retornar respuesta
-        return response()->json(
-            [
-                'user' => $userGuest,
-                'success' => true,
-                'verified' => true,
-                'remember' => false,
-                'message' => 'Sesión Iniciada',
-                'reviews' => $reviews,
-            ]
-        );
+        //Reiniciar descripción
+        $userGuest->update([
+            'image' => null,
+            'description' => "Cuenta de invitado. Solo puede registrar 5 juegos como favoritos y 5 reseñas."
+        ]);
+
+        //Iniciar sesión
+        Auth::login($userGuest);
+
+        return response()->json([
+            'user' => $userGuest,
+            'success' => true,
+            'verified' => true,
+            'remember' => false,
+            'message' => 'Sesión Iniciada'
+        ]);
     }
+
 }
